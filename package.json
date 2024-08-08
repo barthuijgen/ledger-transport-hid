@@ -2,6 +2,10 @@
   "name": "ledger-transport-hid",
   "version": "0.1.0",
   "description": "Ledger transport for browser using HID",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/barthuijgen/ledger-transport-hid"
+  },
   "scripts": {
     "build": "unbuild"
   },

@@ -21,22 +21,19 @@ export class LedgerTransport {
   inputCallback: Record<number, (event: HIDInputReportEvent) => void> = {};
 
   constructor(private device: HIDDevice) {
-    device.addEventListener("inputreport", this.onInputReport.bind(this));
-    navigator.hid.addEventListener("connect", this.onConnect.bind(this));
-    navigator.hid.addEventListener("disconnect", this.onDisconnect.bind(this));
+    this.onInputReport = this.onInputReport.bind(this);
+    this.onConnect = this.onConnect.bind(this);
+    this.onDisconnect = this.onDisconnect.bind(this);
+    device.addEventListener("inputreport", this.onInputReport);
+    navigator.hid.addEventListener("connect", this.onConnect);
+    navigator.hid.addEventListener("disconnect", this.onDisconnect);
   }
 
   close() {
-    this.device.removeEventListener(
-      "inputreport",
-      this.onInputReport.bind(this)
-    );
+    this.device.removeEventListener("inputreport", this.onInputReport);
     this.device.close();
-    navigator.hid.removeEventListener("connect", this.onConnect.bind(this));
-    navigator.hid.removeEventListener(
-      "disconnect",
-      this.onDisconnect.bind(this)
-    );
+    navigator.hid.removeEventListener("connect", this.onConnect);
+    navigator.hid.removeEventListener("disconnect", this.onDisconnect);
   }
 
   // async sendChunks(
@@ -232,14 +229,11 @@ export class LedgerTransport {
   onConnect(event: HIDConnectionEvent) {
     // console.log("connect", event);
     this.device = event.device;
-    event.device.addEventListener("inputreport", this.onInputReport.bind(this));
+    event.device.addEventListener("inputreport", this.onInputReport);
   }
 
   onDisconnect(event: HIDConnectionEvent) {
     // console.log("disconnect", event);
-    event.device.removeEventListener(
-      "inputreport",
-      this.onInputReport.bind(this)
-    );
+    event.device.removeEventListener("inputreport", this.onInputReport);
   }
 }

@@ -11,18 +11,18 @@ Main features of this package:
 ## Usage
 
 ```ts
-import { KadenaLedger, StatusCodes } from "ledger-transport-hid";
+import { LedgerTransport, StatusCodes } from "ledger-transport-hid";
 
 const [device] = await navigator.hid.requestDevice({
-  filters: [{ vendorId: LEDGER_VENDOR_ID }],
+  filters: [{ vendorId: 0x2c97 }],
 });
-const transport = new KadenaLedger(device);
+const transport = new LedgerTransport(device);
 ```
 
-## Example methods (For the Kadena app)
+## Example methods
 
 ```ts
-await transport.send(
+const response = await transport.send(
   0x00,
   0x00,
   0x00,
