@@ -1,0 +1,32 @@
+{
+  "name": "ledger-transport-hid",
+  "version": "0.1.0",
+  "description": "Ledger transport for browser using HID",
+  "scripts": {
+    "build": "unbuild"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "Ledger",
+    "HID",
+    "WebHID",
+    "Transport"
+  ],
+  "author": "Bart Huijgen",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/w3c-web-hid": "^1.0.6",
+    "unbuild": "^2.0.0"
+  }
+}
