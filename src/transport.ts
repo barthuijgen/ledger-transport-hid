@@ -14,13 +14,22 @@ type SendBufferType = {
   }>;
 };
 
+const LOG_LEVEL = {
+  NONE: 0,
+  INFO: 1,
+  DEBUG: 2,
+};
+type LogLevel = keyof typeof LOG_LEVEL;
+
 export class LedgerTransport {
+  logLevel: number;
   packetSize = 64;
   sendBuffer: SendBufferType[] = [];
   inputs: Record<number, HIDInputReportEvent[]> = {};
   inputCallback: Record<number, (event: HIDInputReportEvent) => void> = {};
 
-  constructor(private device: HIDDevice) {
+  constructor(private device: HIDDevice, logLevel: LogLevel = "NONE") {
+    this.logLevel = LOG_LEVEL[logLevel] ?? 0;
     this.onInputReport = this.onInputReport.bind(this);
     this.onConnect = this.onConnect.bind(this);
     this.onDisconnect = this.onDisconnect.bind(this);
@@ -133,15 +142,22 @@ export class LedgerTransport {
       blocks.push(concatUint8Array(head.buffer, chunk));
     }
 
-    // console.log(
-    //   `Sending payload of ${blocks.length} blocks (open: ${this.device.opened})`,
-    // );
-
     if (!this.device.opened) {
       await this.device.open();
     }
-    console.log("%cMessage to hardware device", "color:white;font-weight:bold");
-    console.log(`[SEND] > (channel ${channel}): ${padded.length} bytes`);
+    if (this.logLevel >= LOG_LEVEL.INFO) {
+      console.log(
+        "%cMessage to hardware device",
+        "color:white;font-weight:bold"
+      );
+      if (this.logLevel >= LOG_LEVEL.DEBUG) {
+        console.log(`[SEND] > (channel ${channel}): ${padded.length} bytes`, [
+          ...padded,
+        ]);
+      } else {
+        console.log(`[SEND] > (channel ${channel}): ${padded.length} bytes`);
+      }
+    }
     for (let i = 0; i < blocks.length; i++) {
       await this.device.sendReport(0, blocks[i]);
     }
@@ -151,11 +167,17 @@ export class LedgerTransport {
 
   onInputReport(event: HIDInputReportEvent) {
     const channel = event.data.getUint16(0, false);
-    console.log(
-      `[RECV] < (channel ${channel}): ${event.data.byteLength} bytes`
-    );
+    if (this.logLevel >= LOG_LEVEL.DEBUG) {
+      console.log(
+        `[RECV] < (channel ${channel}): ${event.data.byteLength} bytes`,
+        Array.from(new Uint8Array(event.data.buffer))
+      );
+    } else if (this.logLevel >= LOG_LEVEL.INFO) {
+      console.log(
+        `[RECV] < (channel ${channel}): ${event.data.byteLength} bytes`
+      );
+    }
 
-    // console.log([...new Uint8Array(event.data.buffer)]);
     if (this.inputCallback[channel]) {
       this.inputCallback[channel](event);
       delete this.inputCallback[channel];
@@ -194,13 +216,16 @@ export class LedgerTransport {
         dataLength = event.data.getUint16(5, false);
       }
 
-      // console.log('response', {
-      //   channel,
-      //   tag,
-      //   sequence,
-      //   length: event.data.byteLength,
-      //   dataLength,
-      // });
+      if (this.logLevel >= LOG_LEVEL.DEBUG) {
+        console.log("response", {
+          channel,
+          tag,
+          sequence,
+          length: event.data.byteLength,
+          dataLength,
+          bytes: [...new Uint8Array(event.data.buffer)],
+        });
+      }
 
       data = concatUint8Array(data, event.data.buffer.slice(dataIndex));
     };
@@ -211,8 +236,6 @@ export class LedgerTransport {
     }
 
     const result = data.slice(0, dataLength);
-    // console.log('result', [...result]);
-
     const dataView = new DataView(result.buffer);
     const code = dataView.getUint16(result.length - 2);
 
@@ -227,13 +250,17 @@ export class LedgerTransport {
   }
 
   onConnect(event: HIDConnectionEvent) {
-    // console.log("connect", event);
+    if (this.logLevel >= LOG_LEVEL.DEBUG) {
+      console.log("connect", event);
+    }
     this.device = event.device;
     event.device.addEventListener("inputreport", this.onInputReport);
   }
 
   onDisconnect(event: HIDConnectionEvent) {
-    // console.log("disconnect", event);
+    if (this.logLevel >= LOG_LEVEL.DEBUG) {
+      console.log("disconnect", event);
+    }
     event.device.removeEventListener("inputreport", this.onInputReport);
   }
 }

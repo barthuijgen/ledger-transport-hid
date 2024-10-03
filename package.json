@@ -1,6 +1,6 @@
 {
   "name": "ledger-transport-hid",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Ledger transport for browser using HID",
   "repository": {
     "type": "git",

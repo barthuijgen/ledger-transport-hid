@@ -22,13 +22,15 @@ const transport = new LedgerTransport(device);
 ## Example methods
 
 ```ts
+// Read the version and name of the currently open app
+// Throws an error if no app is open
 const response = await transport.send(
   0x00,
   0x00,
   0x00,
   0x00,
   new Uint8Array(230),
-  [StatusCodes.OK, 0x6e01] // 0x6e01 = already open
+  [StatusCodes.OK]
 );
 
 const [major, minor, patch, ...appName] = response.data;
